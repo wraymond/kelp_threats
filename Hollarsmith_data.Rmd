@@ -1,0 +1,49 @@
+---
+title: "Hollarsmith_data"
+author: "Wendel Raymond"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Analysis of Hollarsmith et al 2022 data
+Exploration of supplemental material data from Hollarsmith et al 2022. Purpose is to refine and characterize for the purposes of ranking kelp threats/stressors.
+
+```{r}
+library(tidyverse)
+
+theme_set(theme_classic())
+```
+
+### Data
+```{r}
+## Literature search metadata ##
+dat.lit <- read.csv("../Hollarsmith supplemental/ece38510-sup-0001-SupInfo.csv", header = TRUE, stringsAsFactors = FALSE)
+
+## Summarized lit counts with effect directionality ##
+dat.lit.counts <- read.csv("../Hollarsmith supplemental/ece38510-sup-0002-TableS1.csv", header = TRUE, stringsAsFactors = FALSE)
+
+## all unique 'driver' aka threats ##
+threats <- unique(dat.lit$Direct.stressor)
+threats <- c("Salinity", "Nutrients", "Temperature", "Water clarity", "Substrate change", "Contaminants", "Mechanical damage", "Algal competition", "Epiphytes")
+```
+
+### Raw literature
+```{r}
+names(dat.lit)
+unique(dat.lit$Location.general)
+unique(dat.lit$Location.specific)
+unique(dat.lit$Species)
+
+dat.NerMac <- dat.lit %>% 
+  filter(str_detect(Species, "Nereocystis luetkeana") | str_detect(Species, "Macrocystis pyrifera"))
+
+unique(dat.NerMac$Direct.stressor)
+
+dat.NerMac.sum <- dat.NerMac %>% 
+  group_by(Species, Direct.stressor, Location.general) %>%
+  mutate(citation = Citation) %>% 
+  summarise(count = n())
+```
+
