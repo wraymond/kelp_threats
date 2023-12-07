@@ -30,20 +30,34 @@ threats <- c("Salinity", "Nutrients", "Temperature", "Water clarity", "Substrate
 ```
 
 ### Raw literature
-```{r}
-names(dat.lit)
-unique(dat.lit$Location.general)
-unique(dat.lit$Location.specific)
-unique(dat.lit$Species)
+Exploration of literature dataset
 
+#### Nereocystis and Macrocystis
+```{r}
 dat.NerMac <- dat.lit %>% 
   filter(str_detect(Species, "Nereocystis luetkeana") | str_detect(Species, "Macrocystis pyrifera"))
 
 unique(dat.NerMac$Direct.stressor)
 
-dat.NerMac.sum <- dat.NerMac %>% 
+NerMac.sum <- dat.NerMac %>% 
   group_by(Species, Direct.stressor, Location.general) %>%
-  mutate(citation = Citation) %>% 
+  mutate(citation = Citation) %>%
   summarise(count = n())
+
+NerMac.dir.sum <- dat.NerMac %>% 
+  group_by(Direct.stressor, Location.general, Relationship) %>% 
+  summarize(count = n())
+
+NerMac.dir.sum$Direct.stressor <- ifelse(NerMac.dir.sum$Direct.stressor == "Substrate change (benthic sediment accumulation)", "Substrate change", NerMac.dir.sum$Direct.stressor)
+
+png(filename = "../Figures/NerMac_LitCounts.png", width = 8, height = 6, units = "in", res = 400)
+ggplot(NerMac.dir.sum) +
+  geom_col(aes(x = Location.general, y = count, fill = Relationship), position = position_dodge(width = 0.9, preserve = "single")) +
+  scale_fill_manual(values = c("#C72C2C", "#2083BD", "#7A6969", "#467019")) +
+  xlab("Location") +
+  ylab("Count") +
+  facet_wrap(~Direct.stressor, ) +
+  theme(legend.position = c(0.88, 0.13))
+dev.off()
 ```
 
