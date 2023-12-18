@@ -19,14 +19,14 @@ theme_set(theme_classic())
 ### Data
 ```{r}
 ## Literature search metadata ##
-dat.lit <- read.csv("../Hollarsmith supplemental/ece38510-sup-0001-SupInfo.csv", header = TRUE, stringsAsFactors = FALSE)
+dat.lit <- read.csv("../Kelp_StressorThreats_Literature.csv", header = TRUE, stringsAsFactors = FALSE)
 
 ## Summarized lit counts with effect directionality ##
 dat.lit.counts <- read.csv("../Hollarsmith supplemental/ece38510-sup-0002-TableS1.csv", header = TRUE, stringsAsFactors = FALSE)
 
 ## all unique 'driver' aka threats ##
-threats <- unique(dat.lit$Direct.stressor)
-threats <- c("Salinity", "Nutrients", "Temperature", "Water clarity", "Substrate change", "Contaminants", "Mechanical damage", "Algal competition", "Epiphytes")
+threats <- unique(dat.lit$Stressor)
+threats <- threats[c(1:5, 7:10)]
 ```
 
 ### Raw literature
@@ -59,5 +59,20 @@ ggplot(NerMac.dir.sum) +
   facet_wrap(~Direct.stressor, ) +
   theme(legend.position = c(0.88, 0.13))
 dev.off()
+```
+
+### Literature by stressor, species, lifestage
+Group literature by stressor, species, and lifestage, then tabulate by location
+
+```{r}
+Stressor.sum <- dat.lit %>% 
+  filter(str_detect(Species.simplified, "Nereocystis") |  str_detect(Species.simplified, "Macrocystis") | str_detect(Species.simplified, "Understory")) %>% 
+  filter(Stressor %in% threats) %>% 
+  filter(!Lifestage.simplified %in% c("Other")) %>% 
+  group_by(Stressor, Species.simplified, Lifestage.simplified, Location.general) %>% 
+  summarise(count = n()) %>% 
+  pivot_wider(names_from = Location.general, values_from = count, values_fill = 0)
+
+write.csv(Stressor.sum, "../stressor_summary.csv", row.names = FALSE)
 ```
 
